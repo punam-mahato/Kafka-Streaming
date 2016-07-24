@@ -1,0 +1,117 @@
+package kafka_streams;
+
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Resources;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.Random;
+import java.util.*;
+
+//import org.apache.kafka.streams.examples.pageview1.PageViewUntypedDemo;
+
+/**
+ * This producer will send a bunch of messages to topic "fast-messages". Every so often,
+ * it will send a message to "slow-messages". This shows how messages can be sent to
+ * multiple topics. On the receiving end, we will see both kinds of messages but will
+ * also see how the two topics aren't really synchronized.
+ */
+public class Consumer {
+
+    static public class WindowedRegion {
+        public long windowStart;
+        public String region;
+    }
+
+    // POJO classes
+    static public class PageView {
+        public String user;
+        public String page;
+        public Long timestamp;
+    }
+
+    static public class UserProfile {
+        public String region;
+        public Long timestamp;
+    }
+
+    static public class PageViewByRegion {
+        public String user;
+        public String page;
+        public String region;
+    }
+
+    static public class WindowedPageViewByRegion {
+        public long windowStart;
+        public String region;
+    }
+
+    static public class RegionCount {
+        public long count;
+        public String region;
+    }
+    public static void main(String[] args) throws IOException {
+
+     if(args.length < 2){
+         System.out.println("Usage: consumer <topic> <groupname>");
+         return;
+      }
+        // set up the consumer
+
+      String topic = args[0].toString();
+      String group = args[1].toString();
+
+      Map<String, Object> serdeProps = new HashMap<>();
+      final Serializer<WindowedRegion> windowedRegionSerializer = new JsonPOJOSerializer<>();
+      serdeProps.put("JsonPOJOClass", WindowedRegion.class);
+      windowedRegionSerializer.configure(serdeProps, false);
+      final Deserializer<WindowedRegion> windowedRegionDeserializer = new JsonPOJODeserializer<>();
+      serdeProps.put("JsonPOJOClass", WindowedRegion.class);
+      windowedRegionDeserializer.configure(serdeProps, false);
+      final Serde<WindowedRegion> windowedregionSerde = Serdes.serdeFrom(windowedRegionSerializer, windowedRegionDeserializer);
+      Properties props = new Properties();
+      props.put("bootstrap.servers", "localhost:9092");
+      props.put("zookeeper.connect", "localhost:2181");
+      props.put("group.id", group);
+      props.put("enable.auto.commit", "true");
+      props.put("auto.commit.interval.ms", "1000");
+      props.put("session.timeout.ms", "30000");
+      props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+      //props.put("value.deserializer", "kafka_streams.examples.JsonPOJODeserializer");
+      props.put("value.deserializer", "windowedRegionDeserializer");
+      props.put("auto.offset.reset", "earliest");
+      //KafkaConsumer<String, PageView> consumer = new KafkaConsumer<String, PageView>(props);
+      KafkaConsumer<String, Long> consumer = new KafkaConsumer<String, Long>(props);
+      consumer.subscribe(Arrays.asList(topic));
+      System.out.println("Subscribed to topic " + topic);   
+
+      //ObjectMapper mapper = new ObjectMapper();     
+
+      while (true) {
+         ConsumerRecords<String, Long> records = consumer.poll(100);
+            for (ConsumerRecord<String, Long> record : records){
+                //PageView value= record.value();
+                System.out.println("region: "+ record.key() +", clicks: "+record.value());
+                //System.out.println("user: "+ value.user +", page: "+value.page +", timestamp: "+value.timestamp);
+                    //mapper.readValue(src, JsonNode.class)
+                //JsonNode msg = mapper.readTree(record.value());
+                //System.out.println("user: "+ msg.path("user").asText() +", page: "+msg.path("page").asText() +", timestamp: "+msg.path("timestamp").asLong());
+
+            }
+
+      }
+
+
+    }
+}
