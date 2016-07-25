@@ -54,7 +54,7 @@ public class WindowedJoin {
                 if (region != null){rc.region= region;}
                 else rc.region= "UNKNOWN";
                 rc.clicks=clicks;
-                if(clicks%7==0){System.out.println("\n \n ----- Performing windowed join ----------");}                
+                if(clicks%25==0){System.out.println("\n \n ----- Performing windowed join ----------");}                
                 return rc;
             }
             }, JoinWindows.of("clicks-summary").within(10*1000L), Serdes.String(), Serdes.Long() ,Serdes.String())

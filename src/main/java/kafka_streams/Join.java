@@ -54,7 +54,7 @@ public class Join {
                 if (region != null){rc.region= region;}
                 else rc.region= "UNKNOWN";
                 rc.clicks=clicks;
-                if(clicks%7==0){System.out.println("\n \n ----- Performing join ----------");}
+                if(clicks%25==0){System.out.println("\n \n ----- Performing join ----------");}
                 return rc;
             }
             })
@@ -73,7 +73,7 @@ public class Join {
             .reduceByKey(new Reducer<Long>(){
                 @Override
                 public Long apply(Long value1, Long value2){
-                    System.out.println("reduceByKey");
+                    
                     return (value1+value2);
                 }
             }, Serdes.String(), Serdes.Long(), "changelog-region-clicks ");

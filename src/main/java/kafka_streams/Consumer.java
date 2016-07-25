@@ -3,7 +3,7 @@ package kafka_streams;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-
+import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -40,12 +40,25 @@ public class Consumer {
       KafkaConsumer<String, Long> consumer = new KafkaConsumer<String, Long>(props);
       consumer.subscribe(Arrays.asList(topic));
       System.out.println("Subscribed to topic " + topic);   
-   
+      Long unixTime;
+      Long totalLatency=0L;
+      Long count=0L;
+      Long minCreationTime=Long.MAX_VALUE;
 
       while (true) {
          ConsumerRecords<String, Long> records = consumer.poll(100);
             for (ConsumerRecord<String, Long> record : records){
-              System.out.println("region: "+ record.key() +"            clicks: "+record.value());
+              /* // For benchmarking tests              
+              Long ts = record.timestamp();
+              if(ts<minCreationTime){minCreationTime=ts;}
+              //TimestampType tp = record.timestampType();
+              unixTime = System.currentTimeMillis();
+              Long latency = unixTime - ts;
+              totalLatency+=latency; 
+              count+=1;
+              System.out.println("region: "+ record.key() +"  clicks: "+record.value()+ "   outputTime: "+ unixTime+ " minCreationTime : "+ minCreationTime+ "  totallatency: "+ totalLatency+ "  count: "+ count);
+              */
+              System.out.println("region: "+ record.key() +"  clicks: "+record.value());
             }
 
       }

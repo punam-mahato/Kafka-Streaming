@@ -36,10 +36,10 @@ public class Producer {
             for (int i = 0; i < 100000; i++) {
                 Random rn = new Random();
 
-                int rnd =	rn.nextInt(500);                
+                int rnd =	rn.nextInt(50);                
                 String user= (String)("user"+Integer.toString(i));
 
-                long range = 1000L;                
+                long range = 100L;                
                 long clicks = (long)(rn.nextDouble()*range);                
 
                 ProducerRecord record = new ProducerRecord<>("user-clicks", user, clicks);
