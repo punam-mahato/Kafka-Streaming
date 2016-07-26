@@ -11,8 +11,11 @@ set different broker id, port, log.dirs for each broker
 start them using above command as: bin/kafka-server-start.sh config/server-1.properties
 
 to create topics:
->bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
-can set the partitions and replication-factor
+>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic user-clicks
+>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic user-location
+>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic outputTopic1
+>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic outputTopic2
+can set the partitions and replication-factor if you have multiple brokers
 
 To run the application:
 After extracting
