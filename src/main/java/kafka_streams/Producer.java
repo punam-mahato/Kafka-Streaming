@@ -36,7 +36,7 @@ public class Producer {
             for (int i = 0; i < 100000; i++) {
                 Random rn = new Random();
 
-                int rnd =	rn.nextInt(50);                
+                int rnd =	rn.nextInt(500);                
                 String user= (String)("user"+Integer.toString(i));
 
                 long range = 100L;                

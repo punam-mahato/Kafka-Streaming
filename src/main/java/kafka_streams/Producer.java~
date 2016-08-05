@@ -1,151 +1,62 @@
-package kafka_streams.examples;
+package kafka_streams;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.google.common.io.Resources;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-
 import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
-import java.util.*;
+import java.util.Random;
 
-//import org.apache.kafka.streams.examples.pageview1.PageViewUntypedDemo;
 
-/**
- * This producer will send a bunch of messages to topic "fast-messages". Every so often,
- * it will send a message to "slow-messages". This shows how messages can be sent to
- * multiple topics. On the receiving end, we will see both kinds of messages but will
- * also see how the two topics aren't really synchronized.
- */
 public class Producer {
 
-    // POJO classes
-    static public class PageView {
-        public String user;
-        public String page;
-        public Long timestamp;
-    }
-
-    static public class UserProfile {
-        public String user;
-        public String region;
-        public Long timestamp;
-    }
-
-    static public class PageViewByRegion {
-        public String user;
-        public String page;
-        public String region;
-    }
-
-    static public class WindowedPageViewByRegion {
-        public long windowStart;
-        public String region;
-    }
-
-    static public class RegionCount {
-        public long count;
-        public String region;
-    }
     public static void main(String[] args) throws IOException {
-        // set up the producer
-        KafkaProducer<String, PageView> producer1;
+        
+        KafkaProducer<String, Long> producer1;
         Properties props1 = new Properties();
-        props1.put("bootstrap.servers", "localhost:9092");
-        props1.put("metadata.broker.list", "localhost:9092");
-        props1.put("client.id", "DemoProducer");
-        props1.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        //props.put("value.serializer", "kafka_streams.examples.JsonPOJOSerializer");
+        props1.put("bootstrap.servers", "localhost:9092");        
+        props1.put("client.id", "Producer.1");
+        props1.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");        
         props1.put("value.serializer", "org.apache.kafka.common.serialization.LongSerializer");
         producer1 = new KafkaProducer<>(props1);
 
-        KafkaProducer<String, PageView> producer2;
+        KafkaProducer<String, String> producer2;
         Properties props2 = new Properties();
-        props2.put("bootstrap.servers", "localhost:9092");
-        props2.put("metadata.broker.list", "localhost:9092");
-        props2.put("client.id", "DemoProducer");
-        props2.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        //props.put("value.serializer", "kafka_streams.examples.JsonPOJOSerializer");
+        props2.put("bootstrap.servers", "localhost:9092");        
+        props2.put("client.id", "DemoProducer2");
+        props2.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");        
         props2.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         producer2 = new KafkaProducer<>(props2);
-String[] states = {"California", "Alabama", "Arkansas", "Arizona", "Alaska", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming" };
+        String[] states = {"California", "Alabama", "Arkansas", "Arizona", "Alaska", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming" };
 
 
         try {
 
-
             for (int i = 0; i < 100000; i++) {
                 Random rn = new Random();
-                int rnd =	rn.nextInt(500);
-                //String user= (String)("user"+Integer.toString(rnd));
-                String uuid = UUID.randomUUID().toString();
-                String user =uuid;
-                Long pageviews= 123456789L;                
-                //long timestamp = new Date().getTime();
-                //PageView pv =new PageView();
 
-                ProducerRecord record = new ProducerRecord<>("streams-pageview-input", user, pageviews);
+                int rnd =	rn.nextInt(500);                
+                String user= (String)("user"+Integer.toString(i));
+
+                long range = 100L;                
+                long clicks = (long)(rn.nextDouble()*range);                
+
+                ProducerRecord record = new ProducerRecord<>("user-clicks", user, clicks);
                 producer1.send(record);
 
                 int rand = rn.nextInt(50);
                 String location =states[rand];
-                String region =location;
-   
-                ProducerRecord rec = new ProducerRecord<>("streams-userprofile-input", user, region);
+
+                
+                ProducerRecord rec = new ProducerRecord<>("user-location", user, location);
                 producer2.send(rec);
 
-                System.out.println("Done"+ region);
+                if(clicks%7==0){System.out.println("\n ----- Writing records to topics ----------  \n" );}
 
-            /*  for POJO objects
-            for (int i = 0; i < 100; i++) {
-                String user= "a";
-                String page= "x";                
-                long timestamp = new Date().getTime();
-                PageView pv =new PageView();
-		        pv.user=user;
-		        pv.page=page;
-		        pv.timestamp=timestamp;
-                ProducerRecord record = new ProducerRecord<>("streams-pageview-input", user, pv);
-                producer.send(record);
-
-                String region ="om";
-                UserProfile up = new UserProfile();
-                up.user= user;                
-                up.timestamp= timestamp;
-                up.region= region;
-                ProducerRecord rec = new ProducerRecord<>("streams-userprofile-input", user, up);
-                producer.send(rec);
-                /*
-
-
-                /*
-                // send lots of messages
-                producer.send(new ProducerRecord<String, String>(
-                        "streams-pageview-input",
-                        String.format("{\"type\":\"test\", \"t\":%.3f, \"k\":%d}", System.nanoTime() * 1e-9, i)));
-
-                // every so often send to a different topic
-                if (i % 1000 == 0) {
-                    producer.send(new ProducerRecord<String, String>(
-                            "fast-messages",
-                            String.format("{\"type\":\"marker\", \"t\":%.3f, \"k\":%d}", System.nanoTime() * 1e-9, i)));
-                    producer.send(new ProducerRecord<String, String>(
-                            "summary-markers",
-                            String.format("{\"type\":\"other\", \"t\":%.3f, \"k\":%d}", System.nanoTime() * 1e-9, i)));
-                    producer.flush();
-                    System.out.println("Sent msg number " + i);
-                }
-                */
             }
         }  finally {
+            
             producer1.close();
             producer2.close();
         }
